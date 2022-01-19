@@ -84,7 +84,7 @@ def send_sms_code(request):
     request.session.phone_number=time_otp
     payload = dict(sender='Sasa SMS',sms=message,msisdn=phone_number)
     
-    r=requests.post(url=sms_api_url,json=payload,timeout=60, headers={"X-TOKEN":api_key})
+    r=requests.post(url=sms_api_url,json=payload,timeout=20, headers={"X-TOKEN":api_key})
     data["message"] = "Message has been sent successfully"
     data["phone_number"] = phone_number
     data['otp']=r
