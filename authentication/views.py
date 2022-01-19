@@ -22,7 +22,7 @@ api_key = config("MSG_API_KEY")
 sms_api_url = config("SMS_ENDPOINT")
 
 def index(request):
-  return HttpResponse('Pigibanks authentication default route')
+  return HttpResponse('Pigibanks authenticattion default route')
 
 
 @csrf_exempt
