@@ -22,10 +22,16 @@ from authentication.serializer import CustomAuthToken
 #     TokenRefreshView,
 # )
 from rest_framework.authtoken import views
+from django.conf import settings  
+from django.conf.urls.static import static  
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('authentication/', include('authentication.urls')),
+    path('savings/', include('savings.urls')),
     path('api-token/', CustomAuthToken.as_view())
+
     # path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)  

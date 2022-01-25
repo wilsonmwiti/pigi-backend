@@ -73,46 +73,53 @@ def send_sms_code(request):
     """Function that send OTP message to client"""
     data ={}
     request_body = json.loads(request.body)
-    print(request_body)
     phone_number = request_body['phone_number']
-    print(phone_number)
     key = pyotp.random_base32()
     time_otp = pyotp.TOTP(key, interval=300, digits=4)
     time_otp = time_otp.now()
     message = "Your OTP is " + time_otp
-    print(message)
-    request.session.phone_number=time_otp
-    payload = dict(sender='Sasa SMS',sms=message,msisdn=phone_number)
-    
-    r=requests.post(url=sms_api_url,json=payload,timeout=20, headers={"X-TOKEN":api_key})
+    # payload = dict(sender='Sasa SMS',sms=message,msisdn=phone_number)
+    myobject = {
+        "msisdn": phone_number,
+        "sms" : message,
+        "sender" : "PIGI"
+
+    }
+    headers = {
+        "Accept": '*/*',
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        'Content-Type': 'application/json',
+        "X-TOKEN":api_key
+    }
+    #data to be sent to the api 
+   
+    r=requests.post(sms_api_url,json=myobject,timeout=60, headers=headers)
+
+    response = r.text
     data["message"] = "Message has been sent successfully"
     data["phone_number"] = phone_number
     data['otp']=r
     response = {"data": data}
-
     return Response(response)
 
 
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def verify_otp(request):
-    data = {}
+# @api_view(["POST"])
+# @permission_classes([AllowAny])
+# def verify_otp(request):
+#     data = {}
     
-    otp_input = json.loads(request.body)
-    otp=request.session[otp_input['phone_number']]
+#     otp_input = json.loads(request.body)
     
-    otp_no = otp_input['otp_pin']
-    if otp != otp_no:
-        data["message"] = "Wrong PIN"
-        response = {"data":data}
-        return Response(response)
-    else:
-        data["message"] = "Phone number has been verified successfully"
-        response = {"data":data}
-        return Response(response)
-        
-    
-
+#     otp_no = otp_input['otp_pin']
+#     if otp != otp_no:
+#         data["message"] = "Wrong PIN"
+#         response = {"data":data}
+#         return Response(response)
+#     else:
+#         data["message"] = "Phone number has been verified successfully"
+#         response = {"data":data}
+#         return Response(response)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -128,7 +135,6 @@ def login_user(request):
     except BaseException as e:
         raise ValidationError({"400": f'{str(e)}'})
     token = Token.objects.get_or_create(user=user)[0].key
-    print(token)
     if not check_password(password, user.password):
         raise ValidationError({"message": "Incorrect login credentials"})
     if user:
