@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
   first_name = serializers.CharField(max_length = 50)
   last_name = serializers.CharField(max_length = 50)
-  password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+  password = serializers.CharField(write_only=True, required=True)
   
 
   class Meta:
@@ -53,12 +53,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         'phone_number': {'required':True},
         
     }
-
-  # def validate(self, attrs):
-  #   if attrs['password'] != attrs['password2']:
-  #     raise serializers.ValidationError({"password": "Password fields didn't match."})
-    
-  #   return attrs
  
   def create(self, validated_data):
     first_name=validated_data['first_name']
@@ -81,7 +75,7 @@ class RegisterSerializer(serializers.ModelSerializer):
       username = username,       
     )
     
-    user.set_password('0000{}'.format(validated_data['password']))
+    user.set_password(validated_data['password'])
     user.save()
 
     return user

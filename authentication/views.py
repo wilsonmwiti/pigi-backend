@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import MyUser
 from .serializer import RegisterSerializer, UserSerializer
-from rest_framework import generics,viewsets,permissions
+from rest_framework import generics,viewsets,permissions,status
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
@@ -35,6 +35,21 @@ def users_list(request):
         serializer = UserSerializer(queryset, many=True)
         return JsonResponse(serializer.data, safe=False)
 
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_user(request):
+    '''Verify a phone number exists'''
+    data = {}
+    request_body = json.loads(request.body)
+    phone_number = request_body['phone_number']
+    try:
+        user = MyUser.objects.get(phone_number = phone_number)
+    except MyUser.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    data["first_name"] = user.first_name
+    data["phone_number"] = user.phone_number
+
+    return Response(data)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -104,32 +119,13 @@ def send_sms_code(request):
     return Response(response)
 
 
-# @api_view(["POST"])
-# @permission_classes([AllowAny])
-# def verify_otp(request):
-#     data = {}
-    
-#     otp_input = json.loads(request.body)
-    
-#     otp_no = otp_input['otp_pin']
-#     if otp != otp_no:
-#         data["message"] = "Wrong PIN"
-#         response = {"data":data}
-#         return Response(response)
-#     else:
-#         data["message"] = "Phone number has been verified successfully"
-#         response = {"data":data}
-#         return Response(response)
-
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_user(request):
     data ={}
     reqBody = json.loads(request.body)
-    print(reqBody)
     phone_number = reqBody['phone_number']
-    password = '0000{}'.format(reqBody['password'])
-    print(password)
+    password =reqBody['password']
     try:
         user = MyUser.objects.get(phone_number = phone_number)
     except BaseException as e:
