@@ -114,7 +114,7 @@ def send_sms_code(request):
     response = r.text
     data["message"] = "Message has been sent successfully"
     data["phone_number"] = phone_number
-    data['otp']=r
+    data['otp']=time_otp
     response = {"data": data}
     return Response(response)
 
