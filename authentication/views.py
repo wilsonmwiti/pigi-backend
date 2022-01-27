@@ -16,6 +16,7 @@ import pyotp
 from django.views.decorators.csrf import csrf_exempt
 from decouple import config
 import requests
+import uuid
 
 # Create your views here.
 api_key = config("MSG_API_KEY")
@@ -59,8 +60,9 @@ def Register_Users(request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            user_id = uuid.uuid4
             user.is_active = True
-            user.save()
+            user.save(user_id = user_id)
             token = Token.objects.get_or_create(user=user)[0].key
             data["message"] = "user registered successfully"
             data["phone_number"] = user.phone_number
@@ -118,6 +120,24 @@ def send_sms_code(request):
     response = {"data": data}
     return Response(response)
 
+@api_view(["GET","PUT"])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    '''Retrieve user profile details'''
+    try:
+        user = MyUser.objects.get(id = request.user.id)
+        print(user)
+    except MyUser.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        serializer = UserSerializer(user,many=True)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])

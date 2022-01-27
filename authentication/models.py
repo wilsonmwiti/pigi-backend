@@ -7,6 +7,7 @@ from .managers import UserManager
 # Create your models here.
 
 class MyUser(AbstractBaseUser):
+  user_id = models.UUIDField(null=True)
   phone_number = models.CharField(max_length=15, unique=True)
   password = models.CharField(max_length=300)
   first_name = models.CharField(max_length=50)

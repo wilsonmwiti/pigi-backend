@@ -6,7 +6,7 @@ class GoalSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = Goal
-    fields = ('id','thumbnail','goal_name','amount','maturity_date','daily_reminder',
+    fields = ('id','goal_id','thumbnail','goal_name','amount','maturity_date','daily_reminder',
     'auto_save')
 
   
