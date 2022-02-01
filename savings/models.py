@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.conf import settings
 
@@ -6,7 +7,7 @@ from django.conf import settings
 class Goal(models.Model):
   goal_id = models.UUIDField(null=True)
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-  thumbnail = models.ImageField(upload_to = 'goals')
+  thumbnail = models.ImageField(upload_to = 'goals', default = 'pigibank-default.png')
   goal_name = models.CharField(max_length=50, null=False)
   amount = models.IntegerField(default=0)
   start_date = models.DateTimeField(auto_now_add=True)
