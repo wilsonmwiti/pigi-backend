@@ -18,6 +18,8 @@ from decouple import config
 import requests
 import uuid
 
+from authentication import serializer
+
 # Create your views here.
 api_key = config("MSG_API_KEY")
 sms_api_url = config("SMS_ENDPOINT")
@@ -58,11 +60,9 @@ def Register_Users(request):
     try:
         data = {}
         serializer = RegisterSerializer(data=request.data)
+        user_id = uuid.uuid4
         if serializer.is_valid():
-            user = serializer.save()
-            user_id = uuid.uuid4
-            user.is_active = True
-            user.save(user_id = user_id)
+            user = serializer.save(user_id = user_id, is_active = True)
             token = Token.objects.get_or_create(user=user)[0].key
             data["message"] = "user registered successfully"
             data["phone_number"] = user.phone_number
@@ -84,7 +84,7 @@ def Register_Users(request):
         print(e)
         raise ValidationError({"400": f'Field {str(e)} missing'})
 
-@api_view(["POST"])
+@api_view(["POST",])
 @permission_classes([AllowAny])
 def send_sms_code(request):
     """Function that send OTP message to client"""
@@ -119,6 +119,30 @@ def send_sms_code(request):
     data['otp']=time_otp
     response = {"data": data}
     return Response(response)
+
+@api_view(["PUT",])
+@permission_classes([AllowAny])
+def edit_password(request):
+    '''Edit users password'''
+    data ={}
+    reqBody = json.loads(request.body)
+    phone_number = reqBody['phone_number']
+    password = reqBody['password']
+    try:
+        user = MyUser.objects.get(phone_number = phone_number)
+    except MyUser.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "PUT":
+        user.set_password(password)
+        user.save()
+        serializer =UserSerializer(user)
+        return Response(serializer.data)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+ 
+
 
 @api_view(["GET","PUT", "DELETE"])
 @permission_classes([IsAuthenticated])

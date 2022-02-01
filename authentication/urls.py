@@ -13,4 +13,5 @@ urlpatterns = [
   path('logout/', views.User_logout ),
   path('users/', views.users_list),
   path('OTP-sms/', views.send_sms_code),
+  path('forgot-pass/', views.edit_password),
 ]
