@@ -80,7 +80,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     return user
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = MyUser
-    fields = ['first_name','last_name','username','password','id_number']
+    fields = ['first_name','last_name','username','id_number']

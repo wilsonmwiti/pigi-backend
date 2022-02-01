@@ -44,3 +44,16 @@ class GoalDescription(APIView):
         goal = self.get_goal(url)
         serializers = GoalSerializer(goal)
         return Response(serializers.data)
+    
+    def put(self, request, url, format=None):
+        goal = self.get_goal(url)
+        serializer = GoalSerializer(goal, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, url, format=None):
+        goal = self.get_goal(url)
+        goal.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

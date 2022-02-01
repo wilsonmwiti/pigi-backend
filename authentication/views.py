@@ -120,23 +120,30 @@ def send_sms_code(request):
     response = {"data": data}
     return Response(response)
 
-@api_view(["GET","PUT"])
+@api_view(["GET","PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
 def get_profile(request):
     '''Retrieve user profile details'''
     try:
-        user = MyUser.objects.get(id = request.user.id)
+        user = MyUser.objects.get(pk = request.user.id)
         print(user)
     except MyUser.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
-        serializer = UserSerializer(user,many=True)
+        serializer = UserSerializer(user)
+        print(serializer.data)
         return Response(serializer.data)
     elif request.method == 'PUT':
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
+            serializer.save()
+            return Response(serializer.data)
+    elif request.method == 'DELETE':
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save(visibility = 0)
+        print(user.visibility)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])

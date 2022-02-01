@@ -8,5 +8,6 @@ class GoalSerializer(serializers.ModelSerializer):
     model = Goal
     fields = ('id','goal_id','thumbnail','goal_name','amount','maturity_date','daily_reminder',
     'auto_save')
+    read_only_fields = ('id', 'goal_id')
 
   
