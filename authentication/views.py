@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import MyUser
-from .serializer import RegisterSerializer, UserSerializer
+from .serializer import RegisterSerializer, RegisterSubaccountSerializer, UserSerializer
 from rest_framework import generics,viewsets,permissions,status
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -53,6 +53,28 @@ def get_user(request):
     data["phone_number"] = user.phone_number
 
     return Response(data)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_account(request):
+    try:
+        data = {}
+        serializer = RegisterSubaccountSerializer(data=request.data)
+        if serializer.is_valid():
+            # user_id = uuid.uuid4
+            user = serializer.save(main_user_id = request.user.id)
+            # token = Token.objects.get_or_create(user=user)[0].key
+            data['message'] = "Account has been added successfully"
+            data['first_name'] = user.first_name
+            data["last_name"] = user.last_name
+            data["username"] = user.username
+            data["main_account_id"] =request.user.id
+            # data["token"] = token
+        else:
+            data = serializer.errors
+        return Response(data)
+    except KeyError as e:
+        print(e)
+        raise ValidationError({"400": f'Field {str(e)} missing'})
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -60,9 +82,10 @@ def Register_Users(request):
     try:
         data = {}
         serializer = RegisterSerializer(data=request.data)
-        user_id = uuid.uuid4
-        if serializer.is_valid():
-            user = serializer.save(user_id = user_id, is_active = True)
+        if serializer.is_valid(raise_exception=True):
+            # user_id = uuid.uuid4
+            user = serializer.save()
+            # print(user)
             token = Token.objects.get_or_create(user=user)[0].key
             data["message"] = "user registered successfully"
             data["phone_number"] = user.phone_number
@@ -75,10 +98,10 @@ def Register_Users(request):
 
 
         return Response(data)
-    except IntegrityError as e:
-        account=MyUser.objects.get(phone_number='')
-        account.delete()
-        raise ValidationError({"400": f'{str(e)}'})
+    # except IntegrityError as e:
+    #     account=MyUser.objects.get(phone_number='')
+    #     account.delete()
+    #     raise ValidationError({"400": f'{str(e)}'})
 
     except KeyError as e:
         print(e)

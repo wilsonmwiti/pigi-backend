@@ -4,7 +4,7 @@ from django.contrib.auth.base_user import BaseUserManager
 class UserManager(BaseUserManager):
   use_in_migrations = True
 
-  def create_user(self, phone_number, password, **extra_fields):
+  def create_user(self, phone_number, password = None, **extra_fields):
     user = self.model(phone_number=phone_number, **extra_fields)
     user.set_password(password)
     user.is_active = True
