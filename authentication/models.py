@@ -39,8 +39,10 @@ class MyUser(AbstractBaseUser):
   url = models.URLField(max_length=100, blank=True, null=True)
   visibility = models.IntegerField(default=1,blank=True, null=True)
   referral_code = models.CharField(max_length=300, blank=True, null=True)
-  refered_by = models.IntegerField(blank=True, null=True)
+  refered_by = models.ForeignKey('self', models.SET_NULL ,blank=True, null=True)
   main_user_id = models.IntegerField(default=0)
+  account_balance = models.IntegerField(default=0.0)
+  
 
 
 
@@ -54,6 +56,21 @@ class MyUser(AbstractBaseUser):
 
   def __str__(self):
     return self.first_name + self.last_name
+  
+  # def has_perm(self, perm, obj=None):
+  #   return self.is_superuser
+  
+  # def has_module_perms(self, app_label):
+  #   return self.is_superuser
+
+
+# class UserReferrals(models.Model):
+#   referrer = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+#   referred = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+#   status = models.CharField(max_length=15)
+
+#   class Meta:
+#     unique_together = (('referrer', 'referred'),)
 
   # def authenticate(self, otp):
   #   """This method authenticates the given OTP"""

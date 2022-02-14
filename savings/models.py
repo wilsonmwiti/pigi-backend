@@ -10,6 +10,7 @@ class Goal(models.Model):
   thumbnail = models.ImageField(upload_to = 'goals', default = 'pigibank-default.png')
   goal_name = models.CharField(max_length=50, null=False)
   amount = models.IntegerField(default=0)
+  current_saving = models.IntegerField(default=0)
   start_date = models.DateTimeField(auto_now_add=True)
   maturity_date = models.DateField('maturity_date')
   daily_reminder = models.BooleanField(default=True)

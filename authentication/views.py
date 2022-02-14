@@ -56,6 +56,7 @@ def get_user(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_account(request):
+    '''Adding a sub-account'''
     try:
         data = {}
         serializer = RegisterSubaccountSerializer(data=request.data)
@@ -197,9 +198,11 @@ def get_profile(request):
 @permission_classes([AllowAny])
 def login_user(request):
     data ={}
+
     reqBody = json.loads(request.body)
     phone_number = reqBody['phone_number']
     password =reqBody['password']
+
     try:
         user = MyUser.objects.get(phone_number = phone_number)
     except BaseException as e:
@@ -210,7 +213,7 @@ def login_user(request):
     if user:
         if user.is_active:
             login(request, user)
-            data["message"] = "user logged in"
+            data["message"] = "user createlogged in"
             data["phone_number"] = user.phone_number
             Res = {"data": data, "token": token}
 

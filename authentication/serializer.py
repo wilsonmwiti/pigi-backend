@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 import random
 import uuid
+import base64
 # class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 #   @classmethod
@@ -36,6 +37,9 @@ def generate_unique_username(firstname,lastname):
     return username
   return username
 
+def generate_referal_code():
+  # base64.urlsafe_b64encode(uuid.uuid4().bytes.encode("base64").rstrip())[:12]
+  return str(uuid.uuid4()).replace("-","")[:12]
 
 class CustomAuthToken(ObtainAuthToken):
   def post(self, request, *args, **kwargs):
@@ -87,6 +91,8 @@ class RegisterSerializer(serializers.ModelSerializer):
       # randomString=''.join(random.sample(all, length))
       # username = first_name+'_'+last_name+'_'+randomString
       username = generate_unique_username(first_name,last_name)
+      referral_code = generate_referal_code()
+      print(referral_code)
       
       #Create a user instance
       user = MyUser.objects.create(
@@ -95,7 +101,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         last_name=last_name,
         id_number = validated_data['id_number'],
         username = username,
-        is_active = True,   
+        is_active = True,
+        referral_code =referral_code,
       )
       
       user.set_password(validated_data['password'])
@@ -111,6 +118,7 @@ class RegisterSubaccountSerializer(serializers.Serializer):
     firstname=validated_data['first_name']
     lastname=validated_data['last_name']
     username = generate_unique_username(firstname, lastname)
+  
     user = MyUser.objects.create(
       thumbnail = validated_data['thumbnail'],
       first_name= firstname,
@@ -144,4 +152,5 @@ class RegisterSubaccountSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = MyUser
-    fields = ['id','user_id','first_name','last_name','username','id_number','thumbnail', 'date_added']
+    fields = ['id','user_id','first_name','last_name','username','id_number','referral_code',
+    'refered_by','thumbnail', 'date_added' , 'account_balance']

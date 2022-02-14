@@ -28,6 +28,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('authentication/', include('authentication.urls')),
     path('savings/', include('savings.urls')),
+    path('payments/', include('payments.urls')),
+    path('notifications/', include('notifications.urls')),
     path('api-token/', CustomAuthToken.as_view())
 
     # path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
