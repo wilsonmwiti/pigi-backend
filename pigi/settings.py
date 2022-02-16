@@ -178,6 +178,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAdminUser'
         # 'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
+        
     ],
 }
 # The Mpesa environment to use
