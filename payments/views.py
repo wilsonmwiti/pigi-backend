@@ -97,7 +97,7 @@ def stk_push(request):
   cl = MpesaClient()
   # cl.access_token()
   # callback_url = request.build_absolute_uri(reverse('mpesa_stk_push_callback'))
-  response = cl.stk_push(data["phone_number"], data["amount"],account_reference , data["description"],"https://a71a-197-237-171-101.ngrok.io/payments/mpesa_stk_push_callback/")
+  response = cl.stk_push(data["phone_number"], data["amount"],account_reference , data["description"],"https://1a83-197-237-171-101.ngrok.io/payments/mpesa_stk_push_callback/")
   
   callback_response = json.loads(response.content.decode('utf-8'))
 
@@ -133,9 +133,23 @@ def mpesa_stk_push_callback(request):
       receipt_number=item['Value']
       break
   print(receipt_number)
+  if result_code == 0:
+    try:
+      transaction = Transactions.objects.filter(transaction_id= callback['MerchantRequestID']).update(
+        status = 0, mpesa_receipt_number = receipt_number )
+    except Transactions.DoesNotExist:
+      return Response(status=status.HTTP_404_NOT_FOUND)
+    transaction = Transactions.objects.get(mpesa_receipt_number = receipt_number )
+    if "goal" in transaction.description:
+      print("This is a goal")
+    elif "account" in transaction.description:
+      print("This is an account")
+    else :
+      print("This is a general wallet")
+
+
   
-  	# data[item['Name']] = item.get('Value')
-  # if callback['ResultCode'] == 0:
+
   #   try:
   #     transaction = Transactions.objects.filter(transaction_id= callback['MerchantRequestID']).update(
   #       status = 0
