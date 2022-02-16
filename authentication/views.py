@@ -165,7 +165,31 @@ def edit_password(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
- 
+@api_view(["GET",])
+@permission_classes([IsAuthenticated])
+def load_side_nav(request):
+    try:
+        user = MyUser.objects.get(pk = request.user.id)
+    except MyUser.DoesNotExist:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    if request.method == "GET":
+        all_accounts = MyUser.objects.get(main_user_id = user)
+        currentuser_serializer = UserSerializer(user)
+        sub_accounts_serializer = UserSerializer(all_accounts)
+        user_data = [
+            {
+                "type" : "current_user",
+                "data" : currentuser_serializer.data
+            },
+            {
+                "type" : "subaccounts",
+                "data" : sub_accounts_serializer.data
+
+            },
+
+        ]
+        
+        return Response(user_data)
 
 
 @api_view(["GET","PUT", "DELETE"])
@@ -213,7 +237,7 @@ def login_user(request):
     if user:
         if user.is_active:
             login(request, user)
-            data["message"] = "user createlogged in"
+            data["message"] = "user has logged in"
             data["phone_number"] = user.phone_number
             Res = {"data": data, "token": token}
 

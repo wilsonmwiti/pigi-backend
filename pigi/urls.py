@@ -21,7 +21,6 @@ from authentication.serializer import CustomAuthToken
 #     TokenObtainPairView,
 #     TokenRefreshView,
 # )
-from rest_framework.authtoken import views
 from django.conf import settings  
 from django.conf.urls.static import static  
 urlpatterns = [

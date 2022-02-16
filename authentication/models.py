@@ -10,7 +10,7 @@ import random
 # Create your models here.
 
 class MyUser(AbstractBaseUser):
-  thumbnail = models.ImageField(upload_to = 'profile', default = 'pigibank-default.png')
+  thumbnail = models.ImageField(upload_to = 'profile', default = '/profile/pigibank-default.png')
   user_id = models.UUIDField(null=True, default=uuid.uuid4)
   phone_number = models.CharField(max_length=15, unique=True, null=True)
   password = models.CharField(max_length=300, null=True)

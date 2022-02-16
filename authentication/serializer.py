@@ -1,5 +1,3 @@
-from multiprocessing import context
-from pyexpat import model
 from rest_framework import serializers
 from .models import MyUser
 from rest_framework.validators import UniqueValidator

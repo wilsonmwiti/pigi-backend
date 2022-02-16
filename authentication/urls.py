@@ -15,5 +15,6 @@ urlpatterns = [
   path('users/', views.users_list),
   path('OTP-sms/', views.send_sms_code),
   path('forgot-pass/', views.edit_password),
+  path('load_nav/', views.load_side_nav)
  
 ]
