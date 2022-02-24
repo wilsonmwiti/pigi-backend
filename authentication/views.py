@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+
+from savings.models import GeneralWallet
 from .models import MyUser
 from .serializer import RegisterSerializer, RegisterSubaccountSerializer, UserSerializer
+from django.contrib.auth.hashers import make_password
 from rest_framework import generics,viewsets,permissions,status
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -42,15 +45,29 @@ def users_list(request):
 @permission_classes([AllowAny])
 def get_user(request):
     '''Verify a phone number exists'''
-    data = {}
-    request_body = json.loads(request.body)
-    phone_number = request_body['phone_number']
+    
     try:
-        user = MyUser.objects.get(phone_number = phone_number)
-    except MyUser.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    data["first_name"] = user.first_name
-    data["phone_number"] = user.phone_number
+        data = {}
+        request_body = json.loads(request.body)
+        phone_number = request_body['phone_number']
+        user = MyUser.objects.filter(phone_number = phone_number)
+        if len(user) == 0:
+            raise Exception("The number you have provided does not exist. Please check and try again")
+        
+        response={
+                "status":1,
+                "data":{
+                    "first_name":user[0].first_name
+                }
+            }
+        return JsonResponse(response)
+    except Exception as e:
+        response={
+            "status":0,
+            "data":"Error occured. {}".format(e)
+        }
+        return JsonResponse(response)
+    
 
     return Response(data)
 @api_view(["POST"])
@@ -82,10 +99,12 @@ def add_account(request):
 def Register_Users(request):
     try:
         data = {}
+        response={}
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # user_id = uuid.uuid4
             user = serializer.save()
+            wallet = GeneralWallet.objects.create(user = user, amount = 0)
             # print(user)
             token = Token.objects.get_or_create(user=user)[0].key
             data["message"] = "user registered successfully"
@@ -93,56 +112,81 @@ def Register_Users(request):
             data["first_name"] = user.first_name
             data["last_name"] = user.last_name
             data["token"] = token
+            data["Wallet"] = wallet.amount
 
+
+            response={
+                "status":1,
+                "data":{
+                    "message":"Account created successfully",
+                    "token":data['token']
+                }
+            }
         else:
-            data = serializer.errors
+            raise Exception (serializer.errors)
 
 
-        return Response(data)
-    # except IntegrityError as e:
-    #     account=MyUser.objects.get(phone_number='')
-    #     account.delete()
-    #     raise ValidationError({"400": f'{str(e)}'})
+        return JsonResponse(response)
+    except Exception as e:
+        response={
+            "status":0,
+            "data":"Error occured. {}".format(e)
+        }
+        return JsonResponse(response)
 
-    except KeyError as e:
-        print(e)
-        raise ValidationError({"400": f'Field {str(e)} missing'})
+    # except KeyError as e:
+    #     print(e)
+    #     raise ValidationError({"400": f'Field {str(e)} missing'})
 
 @api_view(["POST",])
 @permission_classes([AllowAny])
 def send_sms_code(request):
     """Function that send OTP message to client"""
-    data ={}
-    request_body = json.loads(request.body)
-    phone_number = request_body['phone_number']
-    key = pyotp.random_base32()
-    time_otp = pyotp.TOTP(key, interval=300, digits=4)
-    time_otp = time_otp.now()
-    message = "Your OTP is " + time_otp
-    # payload = dict(sender='Sasa SMS',sms=message,msisdn=phone_number)
-    myobject = {
-        "msisdn": phone_number,
-        "sms" : message,
-        "sender" : "PIGI"
+    try:
+        data ={}
+        request_body = json.loads(request.body)
+        phone_number = request_body['phone_number']
 
-    }
-    headers = {
-        "Accept": '*/*',
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        'Content-Type': 'application/json',
-        "X-TOKEN":api_key
-    }
-    #data to be sent to the api 
-   
-    r=requests.post(sms_api_url,json=myobject,timeout=60, headers=headers)
+        
+        numbers=MyUser.objects.filter(phone_number = phone_number)
+        if len(numbers) > 0 and request_body['action'] == "register":
+            raise Exception("The number you have provided exists. Please check and try again")
 
-    response = r.text
-    data["message"] = "Message has been sent successfully"
-    data["phone_number"] = phone_number
-    data['otp']=time_otp
-    response = {"data": data}
-    return Response(response)
+        key = pyotp.random_base32()
+        time_otp = pyotp.TOTP(key, interval=300, digits=4)
+        time_otp = time_otp.now()
+        message = "Your OTP is " + time_otp
+        # payload = dict(sender='Sasa SMS',sms=message,msisdn=phone_number)
+        myobject = {
+            "msisdn": phone_number,
+            "sms" : message,
+            "sender" : "PIGI"
+
+        }
+        headers = {
+            "Accept": '*/*',
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            'Content-Type': 'application/json',
+            "X-TOKEN":api_key
+        }
+        #data to be sent to the api 
+    
+        r=requests.post(sms_api_url,json=myobject,timeout=60, headers=headers)
+
+        # response = r.text
+        data['status']=1
+        data["data"]={
+            "message":"Message has been sent successfully",
+            "otp":time_otp
+        }
+        return Response(data)
+    except Exception as e:
+        response={
+            "status":0,
+            "data":"Error occured. {}".format(e)
+        }
+        return JsonResponse(response)
 
 @api_view(["PUT",])
 @permission_classes([AllowAny])
@@ -153,16 +197,31 @@ def edit_password(request):
     phone_number = reqBody['phone_number']
     password = reqBody['password']
     try:
-        user = MyUser.objects.get(phone_number = phone_number)
-    except MyUser.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        user = MyUser.objects.filter(phone_number = phone_number)
 
-    if request.method == "PUT":
-        user.set_password(password)
-        user.save()
-        serializer =UserSerializer(user)
-        return Response(serializer.data)
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+        if len(user) == 0:
+            raise Exception("No user exists with that phone number")
+
+        if request.method == "PUT":
+            user[0].password=make_password(password)
+            user[0].save()
+
+            response={
+            "status":1,
+            "data":{
+                "message":"Password reset successfuly"}
+            }
+            return JsonResponse(response)
+
+
+    except Exception as e:
+        response={
+            "status":0,
+            "data":{
+                "message":"Error occured. Please try again. {}".format(e)}
+        }
+        return JsonResponse(response)
+
 
 
 @api_view(["GET",])
@@ -222,36 +281,82 @@ def get_profile(request):
 @permission_classes([AllowAny])
 def login_user(request):
     data ={}
-
+    response={}
     reqBody = json.loads(request.body)
     phone_number = reqBody['phone_number']
     password =reqBody['password']
 
     try:
         user = MyUser.objects.get(phone_number = phone_number)
-    except BaseException as e:
-        raise ValidationError({"400": f'{str(e)}'})
-    token = Token.objects.get_or_create(user=user)[0].key
-    if not check_password(password, user.password):
-        raise ValidationError({"message": "Incorrect login credentials"})
-    if user:
-        if user.is_active:
-            login(request, user)
-            data["message"] = "user has logged in"
-            data["phone_number"] = user.phone_number
-            Res = {"data": data, "token": token}
+    
+        token = Token.objects.get_or_create(user=user)[0].key
+        if not check_password(password, user.password):
+            response={
+                "status":0,
+                "data":{"message": "Incorrect login credentials"}
+            }
+            return JsonResponse(response)
+        if user:
+            if user.is_active:
+                login(request, user)
+                data["message"] = "user has logged in"
+                data["phone_number"] = user.phone_number
+                Res = {"data": data, "token": token}
 
-            return Response(Res)
+                response={
+                "status":1,
+                "data":{
+                    "message": "Login successful",
+                    "token": token
+                }
+            }
+
+                return Response(response)
+            else:
+                response={
+                "status":0,
+                "data":{
+                    "message": "User is inactive"
+                }
+                }
+                return JsonResponse(response)
         else:
-            raise ValidationError({"400": f'Account not active'})
-    else:
-        raise ValidationError({"400": f'Account doesn\'t exist'})
+            response={
+                "status":0,
+                "data":{
+                    "message": "User is inactive"
+                }
+                }
+            return JsonResponse({"status": 0, "data":"Account does not exist"})
+
+    except Exception as e:
+        response={
+            "status":0,
+            "data":{
+                "message":"Error occured. {}".format(e)
+            }
+        }
+        return JsonResponse(response)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def User_logout(request):
-    request.user.auth_token.delete()
-    logout(request)
-    return Response('User logged out successfully')
+    try:
+        request.user.auth_token.delete()
+        logout(request)
+        response={
+            "status":1,
+            "data":{
+                "message":"You have been logged out successfuly. Please return soon."
+            }
+        }
+        return Response(response)
+    except Exception as e:
+        response={
+            "status":0,
+            "data":{
+                "message":"Error occured. Please try again. {}".format(e)}
+        }
+        return JsonResponse(response)
 
 

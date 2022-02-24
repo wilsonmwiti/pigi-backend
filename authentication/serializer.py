@@ -6,6 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.contrib.auth.hashers import make_password
 import random
 import uuid
 import base64
@@ -75,36 +76,37 @@ class RegisterSerializer(serializers.ModelSerializer):
     }
 
  
-    def create(self, validated_data):
-      first_name=validated_data['first_name']
-      last_name=validated_data['last_name']
+  def create(self, validated_data):
+    first_name=validated_data['first_name']
+    last_name=validated_data['last_name']
 
-      # ##Generate a unique username
-      # lower = 'abcdefghijklmnopqrstuvwxyz'
-      # upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-      # number = '1234567890'
-      # length = 7
-      # all = lower+upper+number
-      # randomString=''.join(random.sample(all, length))
-      # username = first_name+'_'+last_name+'_'+randomString
-      username = generate_unique_username(first_name,last_name)
-      referral_code = generate_referal_code()
-      print(referral_code)
-      
-      #Create a user instance
-      user = MyUser.objects.create(
-        phone_number=validated_data['phone_number'],
-        first_name=first_name,
-        last_name=last_name,
-        id_number = validated_data['id_number'],
-        username = username,
-        is_active = True,
-        referral_code =referral_code,
-      )
-      
-      user.set_password(validated_data['password'])
-      user.save()
-      return user
+    # ##Generate a unique username
+    # lower = 'abcdefghijklmnopqrstuvwxyz'
+    # upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    # number = '1234567890'
+    # length = 7
+    # all = lower+upper+number
+    # randomString=''.join(random.sample(all, length))
+    # username = first_name+'_'+last_name+'_'+randomString
+    username = generate_unique_username(first_name,last_name)
+    referral_code = generate_referal_code()
+    print(referral_code)
+    
+    #Create a user instance
+    user = MyUser.objects.create(
+      phone_number=validated_data['phone_number'],
+      first_name=first_name,
+      last_name=last_name,
+      id_number = validated_data['id_number'],
+      username = username,
+      is_active = True,
+      referral_code =referral_code,
+      password= make_password(validated_data['password'])
+    )
+    
+    # user.set_password()
+    # user.save()
+    return user
 
 class RegisterSubaccountSerializer(serializers.Serializer):
   first_name = serializers.CharField(max_length = 50)
@@ -149,5 +151,5 @@ class RegisterSubaccountSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = MyUser
-    fields = ['id','user_id','first_name','last_name','username','id_number','referral_code',
+    fields = ['id','user_id','first_name','last_name','username','id_number','referral_code', 'main_user_id',
     'refered_by','thumbnail', 'date_added' , 'account_balance']

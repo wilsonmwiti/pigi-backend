@@ -18,8 +18,8 @@ class Goal(models.Model):
   )
 
   goal_id = models.UUIDField(null=True)
-  user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-  thumbnail = models.ImageField(upload_to = 'goals', default = 'goals/pigibank-default.png')
+  user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
+  thumbnail = models.ImageField(upload_to = 'goals', default = 'goals/pigibank-default.jpg')
   goal_name = models.CharField(max_length=50, null=False)
   target_amount = models.IntegerField(null=False, default = 0)
   current_saving = models.IntegerField(default=0)
@@ -36,6 +36,7 @@ class LockedSavings(models.Model):
   DURATION_OPTION = (
       (3, 'Quarterly'),
       (6, 'Semi Anually'),
+      (9, '9 months'),
       (12, 'Anually')
   )
   STATUS_CHOICES = (
@@ -44,7 +45,7 @@ class LockedSavings(models.Model):
     (2, 'Finished')
   )
   savings_id = models.UUIDField(null=False)
-  thumbnail = models.ImageField(upload_to = 'locked_savings', default = 'pigibank-default.png')
+  thumbnail = models.ImageField(upload_to = 'locked_savings', default = 'goals/pigibank-default.jpg', null = True)
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
   item_name = models.CharField(max_length=50,null=False )
   principal_deposit = models.IntegerField(default=0)

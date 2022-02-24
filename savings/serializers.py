@@ -17,35 +17,34 @@ class GoalSerializer(serializers.ModelSerializer):
   class Meta:
     model = Goal
     fields = ('id', 'goal_id','user', 'thumbnail','goal_name','target_amount','maturity_date',
-    'auto_save', 'status', 'start_date','daily_reminder', 'daily_amount')
-    read_only_fields = ('id', 'goal_id', 'start_date','user', 'status','daily_reminder')
+    'auto_save', 'status', 'start_date','daily_reminder', 'daily_amount', 'current_saving')
+    read_only_fields = ('id', 'goal_id', 'start_date','user', 'status','daily_reminder', 'current_saving')
     
   
   def create(self, validated_data):
     auto_save = validated_data['auto_save']
-    thumbnail = validated_data['thumbnail']
     today = datetime.datetime.now()
-    print(today)
     start_time = today.strftime("%H:%M:%S.%f")
     input_maturity_date = validated_data['maturity_date']
     maturity_date = input_maturity_date.strftime("%y-%m-%d")
     daily_amount = validated_data['daily_amount']
   
+    
     date_time_obj = maturity_date + " " + start_time
 
     final_maturity_date = datetime.datetime.strptime(date_time_obj, '%y-%m-%d %H:%M:%S.%f')
 
-    print("NEW MATURITY DATE:", final_maturity_date)
-    print("Maturity date: ",maturity_date)
-    goal = Goal.objects.create(
-      thumbnail = thumbnail,
+    goal = Goal(
       goal_name= validated_data['goal_name'],
       target_amount =  validated_data['target_amount'],
-
       maturity_date =  final_maturity_date,
       daily_amount = daily_amount,
       auto_save = auto_save,
     )
+    if "thumbnail" in validated_data:
+      goal.thumbnail =validated_data['thumbnail']
+
+    goal.save()
     return goal
 
 
@@ -63,6 +62,6 @@ class GeneralWalletSerializer(serializers.ModelSerializer):
   class Meta:
     model = GeneralWallet
     fields = ('user', 'amount')
-    read_only_fields = ('user')
+    read_only_fields = ['user']
 
     
