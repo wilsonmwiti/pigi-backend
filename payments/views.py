@@ -126,7 +126,7 @@ def stk_push(data):
     # cl.access_token()
     # callback_url = request.build_absolute_uri(reverse('mpesa_stk_push_callback'))
     response = cl.stk_push(data['user'].phone_number, data["amount"], account_reference,
-                           data["description"], "https://pigibank-bcknd.herokuapp.com/payments/mpesa_stk_push_callback/")
+                           data["description"], "https://7618-196-207-177-94.ngrok.io/payments/mpesa_stk_push_callback/")
 
     callback_response = json.loads(response.content.decode('utf-8'))
 
