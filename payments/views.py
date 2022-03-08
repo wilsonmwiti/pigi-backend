@@ -1,6 +1,8 @@
 from ast import Global
 from audioop import add
 import datetime
+import base64
+from wsgiref.util import request_uri
 from django.shortcuts import render
 
 from authentication.models import MyUser
@@ -13,7 +15,7 @@ from authentication.serializer import UserSerializer
 import json
 from django.db.models import F
 from django.urls import reverse
-from django_daraja.mpesa.core import MpesaClient
+from django_daraja.mpesa.core import MpesaClient, format_phone_number
 from django.core.cache import cache
 import requests
 import os
@@ -120,13 +122,11 @@ def get_items_dropdown(request):
 
 def stk_push(data):
     transaction_detail = data["description"]
-
     account_reference = config("MPESA_INITIATOR_USERNAME")
     cl = MpesaClient()
-    # cl.access_token()
-    # callback_url = request.build_absolute_uri(reverse('mpesa_stk_push_callback'))
+    cl.access_token()
     response = cl.stk_push(data['user'].phone_number, data["amount"], account_reference,
-                           data["description"], "https://7618-196-207-177-94.ngrok.io/payments/mpesa_stk_push_callback/")
+                           data["description"], config("LIVE_ENDPOINT")+"/payments/mpesa_stk_push_callback/")
 
     callback_response = json.loads(response.content.decode('utf-8'))
 
@@ -217,6 +217,7 @@ def deposit(request):
             "description": request.data['item'],
             "user": request.user,
             "amount": int(request.data['amount']),
+            "phone_number": int(request.data['phone_number']),
         }
         responseData = stk_push(data)
 
