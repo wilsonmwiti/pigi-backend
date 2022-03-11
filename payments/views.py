@@ -133,7 +133,7 @@ def stk_push(data):
     else:
         business_short_code = config('MPESA_SHORTCODE')
 
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     password = base64.b64encode((business_short_code + passkey + timestamp).encode('ascii')).decode('utf-8') 
     transaction_type = 'CustomerPayBillOnline'
     party_a = phone_number
