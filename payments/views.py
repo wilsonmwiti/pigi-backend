@@ -148,7 +148,7 @@ def stk_push(data):
         'PartyA': party_a,
         'PartyB': party_b,
         'PhoneNumber': phone_number,
-        'CallBackURL': "callback_url",
+        'CallBackURL': "https://pigibank-bcknd.herokuapp.com/payments/mpesa_stk_push_callback/",
         'AccountReference': "PIGIBANK",
         'TransactionDesc': transaction_detail
     }
