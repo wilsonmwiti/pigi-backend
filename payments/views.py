@@ -123,6 +123,7 @@ def get_items_dropdown(request):
 def stk_push(data):
     transaction_detail = data["description"]
     transaction_amount = data["amount"]
+    user = data['user']
     print(data)
     phone_number = format_phone_number(data['phone_number'])
     url = '{}/mpesa/stkpush/v1/processrequest'.format(config("MPESA_DOMAIN"))
@@ -168,7 +169,7 @@ def stk_push(data):
     transaction_id = response.get('MerchantRequestID')
     print(transaction_id)
     
-    Transactions.objects.create(user=data['user'], transaction_id=transaction_id, type='D',
+    Transactions.objects.create(user=user, transaction_id=transaction_id, type='D',
                                 transaction_amount=transaction_amount, description=transaction_detail)
     return transaction_id
 
