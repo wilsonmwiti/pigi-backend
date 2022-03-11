@@ -246,7 +246,7 @@ def deposit(request):
             "description": request.data['item'],
             "user": request.user,
             "amount": int(request.data['amount']),
-            "phone_number": int(request.user.phone_number),
+            "phone_number": request.user.phone_number,
         }
         print(request.data)
         responseData = stk_push(data)
