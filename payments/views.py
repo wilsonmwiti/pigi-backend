@@ -123,6 +123,7 @@ def get_items_dropdown(request):
 def stk_push(data):
     transaction_detail = data["description"]
     transaction_amount = data["amount"]
+    print(data)
     phone_number = format_phone_number(data['phone_number'])
     url = '{}/mpesa/stkpush/v1/processrequest'.format(config("MPESA_DOMAIN"))
     passkey = config('MPESA_PASSKEY')
@@ -244,7 +245,7 @@ def deposit(request):
     try:
         data = {
             "description": request.data['item'],
-            "user": request.user.id,
+            "user": request.user,
             "amount": int(request.data['amount']),
             "phone_number": request.user.phone_number,
         }
