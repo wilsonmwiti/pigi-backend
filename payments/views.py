@@ -40,6 +40,7 @@ def generateKeys():
         print(formattedResponse)
         return formattedResponse['access_token']
     except Exception as e:
+        print(e)
         return HttpResponse(e)
 
 
