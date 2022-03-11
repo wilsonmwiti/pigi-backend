@@ -244,7 +244,7 @@ def deposit(request):
     try:
         data = {
             "description": request.data['item'],
-            "user": request.user,
+            "user": request.user.id,
             "amount": int(request.data['amount']),
             "phone_number": request.user.phone_number,
         }
