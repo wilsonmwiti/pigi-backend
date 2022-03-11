@@ -30,18 +30,17 @@ from notifications.views import depositedNotificationMessage, create_notificatio
 # Create your views here.
 
 
-def generate_token():
-
-    consumer_key = settings.VARIABLES.get('MPESA_CONSUMER_KEY')
-    consumer_secret = settings.VARIABLES.get('MPESA_CONSUMER_SECRET')
-
-    r = requests.get(settings.VARIABLES.get('TOKEN_URL'),
-                     auth=HTTPBasicAuth(consumer_key, consumer_secret))
-
-    token = r.json()
-    access_token = token.get('access_token')
-    cache.set('access_token', access_token, 1700)
-    return token.get('access_token')
+def generateKeys():
+    try:
+        response=requests.get(
+                    "{}/oauth/v1/generate?grant_type=client_credentials".format(config("MPESA_DOMAIN")), 
+                    auth=HTTPBasicAuth(config("CUSTOMER_KEY"), config("CUSTOMER_SECRET"))
+                    )
+        formattedResponse=dict(json.loads(response.text))
+        print(formattedResponse)
+        return formattedResponse['access_token']
+    except Exception as e:
+        return HttpResponse(e)
 
 
 @api_view(["GET"])
@@ -154,7 +153,7 @@ def stk_push(data):
     }
 
     headers = {
-        'Authorization': 'Bearer ' + generate_token(),
+        'Authorization': 'Bearer ' + generateKeys(),
         'Content-type': 'application/json'
     }
     r = requests.post(url, json=data, headers=headers)
