@@ -124,7 +124,7 @@ def stk_push(data):
     transaction_detail = data["description"]
 
     phone_number = format_phone_number(data['phone_number'])
-    url = config("MPESA_DOMAIN") + 'mpesa/stkpush/v1/processrequest'
+    url = '{}/mpesa/stkpush/v1/processrequest'.format(config("MPESA_DOMAIN"))
     passkey = config('MPESA_PASSKEY')
     
     mpesa_environment = config('MPESA_ENVIRONMENT')
