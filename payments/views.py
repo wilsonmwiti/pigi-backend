@@ -125,6 +125,7 @@ def stk_push(data):
     account_reference = config("MPESA_INITIATOR_USERNAME")
     cl = MpesaClient()
     cl.access_token()
+    print("LIVE ENDPOINT", config("LIVE_ENDPOINT"))
     response = cl.stk_push(data['user'].phone_number, data["amount"], account_reference,
                            data["description"], config("LIVE_ENDPOINT")+"/payments/mpesa_stk_push_callback/")
 
