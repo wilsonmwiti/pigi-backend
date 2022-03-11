@@ -34,7 +34,7 @@ def generateKeys():
     try:
         response=requests.get(
                     "{}/oauth/v1/generate?grant_type=client_credentials".format(config("MPESA_DOMAIN")), 
-                    auth=HTTPBasicAuth(config("CUSTOMER_KEY"), config("CUSTOMER_SECRET"))
+                    auth=HTTPBasicAuth(config("MPESA_CUSTOMER_KEY"), config("MPESA_CUSTOMER_SECRET"))
                     )
         formattedResponse=dict(json.loads(response.text))
         print(formattedResponse)
