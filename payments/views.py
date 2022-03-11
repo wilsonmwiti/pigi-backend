@@ -122,7 +122,7 @@ def get_items_dropdown(request):
 
 def stk_push(data):
     transaction_detail = data["description"]
-
+    transaction_amount = data["amount"]
     phone_number = format_phone_number(data['phone_number'])
     url = '{}/mpesa/stkpush/v1/processrequest'.format(config("MPESA_DOMAIN"))
     passkey = config('MPESA_PASSKEY')
@@ -144,7 +144,7 @@ def stk_push(data):
         'Password': password,
         'Timestamp': timestamp,
         'TransactionType': transaction_type,
-        'Amount': data['amount'],
+        'Amount': transaction_amount,
         'PartyA': party_a,
         'PartyB': party_b,
         'PhoneNumber': phone_number,
@@ -166,7 +166,7 @@ def stk_push(data):
 
     transaction_id = response.get('MerchantRequestID')
     print(transaction_id)
-    transaction_amount = data["amount"]
+    
     Transactions.objects.create(user=data['user'], transaction_id=transaction_id, type='D',
                                 transaction_amount=transaction_amount, description=transaction_detail)
     return transaction_id
