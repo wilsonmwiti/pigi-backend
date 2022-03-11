@@ -122,22 +122,50 @@ def get_items_dropdown(request):
 
 def stk_push(data):
     transaction_detail = data["description"]
-    account_reference = config("MPESA_INITIATOR_USERNAME")
-    cl = MpesaClient()
-    cl.access_token()
-    print("LIVE ENDPOINT", config("LIVE_ENDPOINT"))
-    response = cl.stk_push(data['user'].phone_number, data["amount"], account_reference,
-                           data["description"], config("LIVE_ENDPOINT")+"/payments/mpesa_stk_push_callback/")
 
-    callback_response = json.loads(response.content.decode('utf-8'))
+    phone_number = format_phone_number(phone_number)
+    url = config("MPESA_DOMAIN") + 'mpesa/stkpush/v1/processrequest'
+    passkey = config('MPESA_PASSKEY')
+    
+    mpesa_environment = config('MPESA_ENVIRONMENT')
+    if mpesa_environment == 'sandbox':
+        business_short_code = config('MPESA_EXPRESS_SHORTCODE')
+    else:
+        business_short_code = config('MPESA_SHORTCODE')
+
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    password = base64.b64encode((business_short_code + passkey + timestamp).encode('ascii')).decode('utf-8') 
+    transaction_type = 'CustomerPayBillOnline'
+    party_a = phone_number
+    party_b = business_short_code
+
+    data = {
+        'BusinessShortCode': business_short_code,
+        'Password': password,
+        'Timestamp': timestamp,
+        'TransactionType': transaction_type,
+        'Amount': data['amount'],
+        'PartyA': party_a,
+        'PartyB': party_b,
+        'PhoneNumber': phone_number,
+        'CallBackURL': "callback_url",
+        'AccountReference': "PIGIBANK",
+        'TransactionDesc': transaction_detail
+    }
+
+    headers = {
+        'Authorization': 'Bearer ' + generate_token(),
+        'Content-type': 'application/json'
+    }
+    r = requests.post(url, json=data, headers=headers)
+    response = dict(json.loads(r.text))
+
+
 
     # Get the item that we are saving for
 
-    transaction_id = callback_response.get('MerchantRequestID')
+    transaction_id = response.get('MerchantRequestID')
     print(transaction_id)
-    # formated_data = transaction_detail.split()
-    # item_type = formated_data[0]
-    # item_id = int(formated_data[1])
     transaction_amount = data["amount"]
     Transactions.objects.create(user=data['user'], transaction_id=transaction_id, type='D',
                                 transaction_amount=transaction_amount, description=transaction_detail)
